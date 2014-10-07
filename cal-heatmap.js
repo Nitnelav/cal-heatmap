@@ -34,7 +34,7 @@ var CalHeatMap = function() {
 		range: 12,
 
 		// Size of each cell, in pixel
-		cellSize: 10,
+		cellSize: [10, 10],
 
 		// Padding between each cell, in pixel
 		cellPadding: 2,
@@ -126,7 +126,7 @@ var CalHeatMap = function() {
 		// Whether to display the legend
 		displayLegend: true,
 
-		legendCellSize: 10,
+		legendCellSize: [10, 10],
 
 		legendCellPadding: 2,
 
@@ -613,7 +613,7 @@ var CalHeatMap = function() {
 	function _initCalendar() {
 		self.verticalDomainLabel = (self.options.label.position === "top" || self.options.label.position === "bottom");
 
-		self.domainVerticalLabelHeight = self.options.label.height === null ? Math.max(25, self.options.cellSize*2): self.options.label.height;
+		self.domainVerticalLabelHeight = self.options.label.height === null ? Math.max(25, self.options.cellSize[1]*2): self.options.label.height;
 		self.domainHorizontalLabelWidth = 0;
 
 		if (self.options.domainLabelFormat === "" && self.options.label.height === null) {
@@ -671,7 +671,7 @@ var CalHeatMap = function() {
 	// Return the width of the domain block, without the domain gutter
 	// @param int d Domain start timestamp
 	function w(d, outer) {
-		var width = self.options.cellSize*self._domainType[self.options.subDomain].column(d) + self.options.cellPadding*self._domainType[self.options.subDomain].column(d);
+		var width = self.options.cellSize[0]*self._domainType[self.options.subDomain].column(d) + self.options.cellPadding*self._domainType[self.options.subDomain].column(d);
 		if (arguments.length === 2 && outer === true) {
 			return width += self.domainHorizontalLabelWidth + self.options.domainGutter + self.options.domainMargin[1] + self.options.domainMargin[3];
 		}
@@ -680,7 +680,7 @@ var CalHeatMap = function() {
 
 	// Return the height of the domain block, without the domain gutter
 	function h(d, outer) {
-		var height = self.options.cellSize*self._domainType[self.options.subDomain].row(d) + self.options.cellPadding*self._domainType[self.options.subDomain].row(d);
+		var height = self.options.cellSize[1]*self._domainType[self.options.subDomain].row(d) + self.options.cellPadding*self._domainType[self.options.subDomain].row(d);
 		if (arguments.length === 2 && outer === true) {
 			height += self.options.domainGutter + self.domainVerticalLabelHeight + self.options.domainMargin[0] + self.options.domainMargin[2];
 		}
@@ -839,8 +839,8 @@ var CalHeatMap = function() {
 			.attr("class", function(d) {
 				return "graph-rect" + self.getHighlightClassName(d.t) + (options.onClick !== null ? " hover_cursor": "");
 			})
-			.attr("width", options.cellSize)
-			.attr("height", options.cellSize)
+			.attr("width", options.cellSize[0])
+			.attr("height", options.cellSize[1])
 			.attr("x", function(d) { return self.positionSubDomainX(d.t); })
 			.attr("y", function(d) { return self.positionSubDomainY(d.t); })
 			.on("click", function(d) {
@@ -876,8 +876,8 @@ var CalHeatMap = function() {
 
                                                 self.tooltip.attr("style",
                                                         "display: block; " +
-                                                        "left: " + (self.positionSubDomainX(d.t) - self.tooltip[0][0].offsetWidth/2 + options.cellSize/2 + parseInt(domainNode.getAttribute("x"), 10)) + "px; " +
-                                                        "top: " + (self.positionSubDomainY(d.t) - self.tooltip[0][0].offsetHeight - options.cellSize/2 + parseInt(domainNode.getAttribute("y"), 10)) + "px;")
+                                                        "left: " + (self.positionSubDomainX(d.t) - self.tooltip[0][0].offsetWidth/2 + options.cellSize[0]/2 + parseInt(domainNode.getAttribute("x"), 10)) + "px; " +
+                                                        "top: " + (self.positionSubDomainY(d.t) - self.tooltip[0][0].offsetHeight - options.cellSize[1]/2 + parseInt(domainNode.getAttribute("y"), 10)) + "px;")
                                                 ;
                                         
                                             }
@@ -1002,8 +1002,8 @@ var CalHeatMap = function() {
 			rect
 				.append("text")
 				.attr("class", function(d) { return "subdomain-text" + self.getHighlightClassName(d.t); })
-				.attr("x", function(d) { return self.positionSubDomainX(d.t) + options.cellSize/2; })
-				.attr("y", function(d) { return self.positionSubDomainY(d.t) + options.cellSize/2; })
+				.attr("x", function(d) { return self.positionSubDomainX(d.t) + options.cellSize[0]/2; })
+				.attr("y", function(d) { return self.positionSubDomainY(d.t) + options.cellSize[1]/2; })
 				.attr("text-anchor", "middle")
 				.attr("dominant-baseline", "central")
 				.text(function(d){ return self.formatDate(new Date(d.t), options.subDomainTextFormat); })
@@ -1776,14 +1776,14 @@ CalHeatMap.prototype = {
 		"use strict";
 
 		var index = this._domainType[this.options.subDomain].position.x(new Date(d));
-		return index * this.options.cellSize + index * this.options.cellPadding;
+		return index * this.options.cellSize[0] + index * this.options.cellPadding;
 	},
 
 	positionSubDomainY: function(d) {
 		"use strict";
 
 		var index = this._domainType[this.options.subDomain].position.y(new Date(d));
-		return index * this.options.cellSize + index * this.options.cellPadding;
+		return index * this.options.cellSize[1] + index * this.options.cellPadding;
 	},
 
 	getSubDomainColumnNumber: function(d) {
@@ -3014,10 +3014,10 @@ Legend.prototype.computeDim = function() {
 	var options = this.calendar.options; // Shorter accessor for variable name mangling when minifying
 	this.dim = {
 		width:
-			options.legendCellSize * (options.legend.length+1) +
+			options.legendCellSize[0] * (options.legend.length+1) +
 			options.legendCellPadding * (options.legend.length),
 		height:
-			options.legendCellSize
+			options.legendCellSize[1]
 	};
 };
 
@@ -3110,10 +3110,10 @@ Legend.prototype.redraw = function(width) {
 
 	function legendCellLayout(selection) {
 		selection
-			.attr("width", options.legendCellSize)
-			.attr("height", options.legendCellSize)
+			.attr("width", options.legendCellSize[0])
+			.attr("height", options.legendCellSize[1])
 			.attr("x", function(d, i) {
-				return i * (options.legendCellSize + options.legendCellPadding);
+				return i * (options.legendCellSize[0] + options.legendCellPadding);
 			})
 		;
 	}
@@ -3149,7 +3149,7 @@ Legend.prototype.redraw = function(width) {
 	legend.select("g").transition().duration(options.animationDuration)
 		.attr("transform", function() {
 			if (options.legendOrientation === "vertical")	{
-				return "rotate(90 " + options.legendCellSize/2 + " " + options.legendCellSize/2 + ")";
+				return "rotate(90 " + options.legendCellSize[0]/2 + " " + options.legendCellSize[1]/2 + ")";
 			}
 			return "";
 		})
