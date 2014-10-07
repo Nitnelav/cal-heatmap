@@ -2432,7 +2432,7 @@ CalHeatMap.prototype = {
 			} else {
 				switch(this.options.dataType) {
 				case "json":
-					d3.json(this.parseURI(source, startDate, endDate), _callback);
+					d3.json(this.parseURI(source, startDate, endDate)).header("X-Requested-With", "XMLHttpRequest").get(function(error, data) {_callback(data);});
 					break;
 				case "csv":
 					d3.csv(this.parseURI(source, startDate, endDate), _callback);
