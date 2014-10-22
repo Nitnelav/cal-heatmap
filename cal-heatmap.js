@@ -999,15 +999,30 @@ var CalHeatMap = function() {
 		// PAINTING DOMAIN SUBDOMAIN CONTENT										//
 		// =========================================================================//
 		if (options.subDomainTextFormat !== null) {
-			rect
-				.append("text")
-				.attr("class", function(d) { return "subdomain-text" + self.getHighlightClassName(d.t); })
-				.attr("x", function(d) { return self.positionSubDomainX(d.t) + options.cellSize[0]/2; })
-				.attr("y", function(d) { return self.positionSubDomainY(d.t) + options.cellSize[1]/2; })
-				.attr("text-anchor", "middle")
-				.attr("dominant-baseline", "central")
-				.text(function(d){ return self.formatDate(new Date(d.t), options.subDomainTextFormat); })
-			;
+                    if (typeof(options.subDomainTextFormat) !== "function")
+                    {
+                        rect
+                            .append("text")
+                            .attr("class", function(d) { return "subdomain-text" + self.getHighlightClassName(d.t); })
+                            .attr("x", function(d) { return self.positionSubDomainX(d.t) + options.cellSize[0]/2; })
+                            .attr("y", function(d) { return self.positionSubDomainY(d.t) + options.cellSize[1]/2; })
+                            .attr("text-anchor", "middle")
+                            .attr("dominant-baseline", "central")
+                            .text(function(d) { return self.formatDate(new Date(d.t), options.subDomainTextFormat); } )
+                        ;
+                    }
+                    else
+                    {
+                        rect
+                            .append("text")
+                            .attr("class", function(d) { return "subdomain-text" + self.getHighlightClassName(d.t); })
+                            .attr("x", function(d) { return self.positionSubDomainX(d.t) + options.cellSize[0]/2; })
+                            .attr("y", function(d) { return self.positionSubDomainY(d.t) + options.cellSize[1]/2; })
+                            .attr("text-anchor", "middle")
+                            .attr("dominant-baseline", "central")
+                            .text( "" )
+                        ;
+                    }
 		}
 
 		// =========================================================================//
@@ -1416,6 +1431,22 @@ CalHeatMap.prototype = {
 
 		rect.transition().duration(options.animationDuration).select("title")
 			.text(function(d) { return parent.getSubDomainTitle(d); })
+		;
+                
+                function formatSubDomainText(element) {
+			if (typeof options.subDomainTextFormat === "function") {
+				element.text(function(d) { return options.subDomainTextFormat(d.t, d.v); });
+			}
+		}
+
+		/**
+		 * Change the subDomainText class if necessary
+		 * Also change the text, e.g when text is representing the value
+		 * instead of the date
+		 */
+		rect.transition().duration(options.animationDuration).select("text")
+			.attr("class", function(d) { return "subdomain-text" + parent.getHighlightClassName(d.t); })
+			.call(formatSubDomainText)
 		;
 	},
 
@@ -3083,8 +3114,9 @@ Legend.prototype.redraw = function(width) {
 			}
 		})
 		.append("title")
+        
 	;
-
+        
 	legendItem.exit().transition().duration(options.animationDuration)
 	.attr("fill-opacity", 0)
 	.remove();
@@ -3119,6 +3151,12 @@ Legend.prototype.redraw = function(width) {
 	}
 
 	legendItem.select("title").text(function(d, i) {
+            if (typeof(options.legendTitleFormat) === "function")
+            {
+                return options.legendTitleFormat(d, i);
+            }
+            else
+            {
 		if (i === 0) {
 			return (options.legendTitleFormat.lower).format({
 				min: options.legend[i],
@@ -3136,6 +3174,7 @@ Legend.prototype.redraw = function(width) {
 				name: options.itemName[1]
 			});
 		}
+            }
 	})
 	;
 
